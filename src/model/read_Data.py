@@ -13,7 +13,7 @@ class TextDataset(Dataset):
         with open("../data/processed_sentence", "rb") as f:
             self.text = pickle.load(f)
         self.images_names = list(self.text.keys())
-        self.charset = "af(eo2scl-it0:56z*1j.kwy#vg;nh!r/79,d8)x43?&p u'q+mb\""
+        self.charset = """ !"#&'()*+,-./0123456789:;?abcdefghijklmnopqrstuvwxyz\\"""
 
     def __len__(self):
         return len(self.images_names)
