@@ -1,4 +1,9 @@
 import torch 
+from torch.autograd import Variable
+import torch.nn.functional as F
+
+def _is_tuple(tuple_like):
+    return isinstance(tuple_like, tuple)
 
 def preprocess_target(targets):
     """ 
@@ -27,7 +32,8 @@ def tensor_to_variable(tensor, volatile):
         return Variable(tensor, volatile)
 
 def get_accuracy(output, targets, prob=True):
-    """ Get accuracy given output and targets
+    """ 
+    Get accuracy given output and targets
     """
     pred, _ = get_prediction(output, prob)
     cnt = 0
