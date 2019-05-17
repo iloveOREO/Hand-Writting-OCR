@@ -15,7 +15,7 @@ class TextDataset(Dataset):
         super().__init__()
         self.data_path = data_path
         self.transform = transform
-        with open("./data/processed_sentence.pickle", "rb") as f:
+        with open("./data/processed_sentence", "rb") as f:
             self.text = pickle.load(f)
         self.images_names = list(self.text.keys())
         self.charset = """ !"#&'()*+,-./0123456789:;?abcdefghijklmnopqrstuvwxyz\\"""

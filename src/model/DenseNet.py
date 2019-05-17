@@ -18,6 +18,7 @@ Args:
     drop_rate: 
 '''
 
+
 class _DenseLayer(nn.Sequential):
     def __init__(self, num_input_features, growth_rate, bn_size, drop_rate):
         super(_DenseLayer, self).__init__()
@@ -25,12 +26,12 @@ class _DenseLayer(nn.Sequential):
         self.add_module('norm1', nn.BatchNorm2d(num_input_features)),
         self.add_module('relu1', nn.ReLU(inplace=True)),
         self.add_module('conv1', nn.Conv2d(num_input_features, bn_size *
-                        growth_rate, kernel_size=1, stride=1, bias=False)),
+                                           growth_rate, kernel_size=1, stride=1, bias=False)),
         # Conv Layer
         self.add_module('norm2', nn.BatchNorm2d(bn_size * growth_rate)),
         self.add_module('relu2', nn.ReLU(inplace=True)),
         self.add_module('conv2', nn.Conv2d(bn_size * growth_rate, growth_rate,
-                        kernel_size=3, stride=1, padding=1, bias=False)),
+                                           kernel_size=3, stride=1, padding=1, bias=False)),
         self.drop_rate = drop_rate
 
     def forward(self, x):
@@ -40,10 +41,13 @@ class _DenseLayer(nn.Sequential):
         # 与输入联结
         return torch.cat([x, new_features], 1)
 
+
 '''
 Args:
     num_layers: DenseBlock有多少层DenseLayers(即有多少组)
 '''
+
+
 class _DenseBlock(nn.Sequential):
     def __init__(self, num_layers, num_input_features, bn_size, growth_rate, drop_rate):
         super(_DenseBlock, self).__init__()
@@ -57,6 +61,8 @@ class _DenseBlock(nn.Sequential):
 DenseBlock与DenseBlock之间，为Transition层
 直接将num_input_features压缩成num_output_features
 '''
+
+
 class _Transition(nn.Sequential):
     def __init__(self, num_input_features, num_output_features):
         super(_Transition, self).__init__()
@@ -65,6 +71,7 @@ class _Transition(nn.Sequential):
         self.add_module('conv', nn.Conv2d(num_input_features, num_output_features,
                                           kernel_size=1, stride=1, bias=False))
         self.add_module('pool', nn.AvgPool2d(kernel_size=2, stride=2))
+
 
 # 将上述组件进行组合
 class DenseNet(nn.Module):
@@ -110,9 +117,10 @@ class DenseNet(nn.Module):
 
         # Final batch norm
         self.features.add_module('norm5', nn.BatchNorm2d(num_features))
-           
+
         # Linear layer
-#         self.classifier = nn.Linear(num_features, num_classes)
+        # self.classifier = nn.Linear(num_features, num_classes)
+        self.classifer = nn.Linear(1, 54)
 
         # Official init from torch repo.
         for m in self.modules():
@@ -132,10 +140,13 @@ class DenseNet(nn.Module):
         out = F.relu(features, inplace=True)
 
         # out = [weight, batch_size, height]
-        out = F.adaptive_avg_pool2d(out.permute(3,0,2,1), (1, 1)).view(out.size(3), out.size(0),-1)
+        out = out.permute(3, 0, 1, 2).mean(-1)
+        # out = F.adaptive_avg_pool2d(out.permute(3, 0, 2, 1), (1, 1)).view(out.size(3), out.size(0), -1)
+        out = self.classifer(out)
         # 全连接层
-#         out = self.classifier(out)
+        #         out = self.classifier(out)
         return out
+
 
 if __name__ == '__main__':
     densenet = DenseNet()

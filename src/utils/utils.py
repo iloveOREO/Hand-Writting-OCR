@@ -1,9 +1,11 @@
-import torch 
+import torch
 from torch.autograd import Variable
 import torch.nn.functional as F
 
+
 def _is_tuple(tuple_like):
     return isinstance(tuple_like, tuple)
+
 
 def preprocess_target(targets):
     """ 
@@ -12,9 +14,10 @@ def preprocess_target(targets):
     """
     lengths = [len(t) for t in targets]
     lengths = torch.IntTensor(lengths)
-    
+
     flatten_target = torch.cat([torch.Tensor(t) for t in targets])
     return flatten_target, lengths
+
 
 def get_seq_length(x):
     """ 
@@ -25,11 +28,13 @@ def get_seq_length(x):
     lengths = torch.IntTensor(bsz).fill_(length)
     return lengths
 
+
 def tensor_to_variable(tensor, volatile):
     if _is_tuple(tensor):
         return tuple((tensor_to_variable(x, volatile) for x in tensor))
     else:
         return Variable(tensor, volatile)
+
 
 def get_accuracy(output, targets, prob=True):
     """ 
@@ -39,13 +44,15 @@ def get_accuracy(output, targets, prob=True):
     cnt = 0
     for batch_ind, target in enumerate(targets):
         target = [v for v in target]
-        if target == pred[batch_ind]:     
+        if target == pred[batch_ind]:
             cnt += 1
     return float(cnt) / len(targets)
+
 
 class AverageMeter(object):
     """ Average meter.
     """
+
     def __init__(self):
         self.reset()
 
