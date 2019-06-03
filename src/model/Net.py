@@ -7,19 +7,19 @@ class Vgg_16(torch.nn.Module):
     def __init__(self):
         super(Vgg_16, self).__init__()
         # self.convolution1 = torch.nn.Conv2d(3, 64, 3, padding=1)
-        self.convolution1 = torch.nn.Conv2d(3, 64, 3, padding=1)
+        self.convolution1 = torch.nn.Conv2d(1, 64, 3, padding=1)
         self.pooling1 = torch.nn.MaxPool2d(2, stride=2)
         self.convolution2 = torch.nn.Conv2d(64, 128, 3, padding=1)
         self.pooling2 = torch.nn.MaxPool2d(2, stride=2)
         self.convolution3 = torch.nn.Conv2d(128, 256, 3, padding=1)
         self.convolution4 = torch.nn.Conv2d(256, 256, 3, padding=1)
-        self.pooling3 = torch.nn.MaxPool2d((1, 2), stride=(2, 2)) # notice stride of the non-square pooling
+        self.pooling3 = torch.nn.MaxPool2d((2, 2), stride=(2, 2)) # notice stride of the non-square pooling
         self.convolution5 = torch.nn.Conv2d(256, 512, 3, padding=1)
         self.BatchNorm1 = torch.nn.BatchNorm2d(512)
         self.convolution6 = torch.nn.Conv2d(512, 512, 3, padding=1)
         self.BatchNorm2 = torch.nn.BatchNorm2d(512)
-        self.pooling4 = torch.nn.MaxPool2d((1, 2), stride=(2, 2))
-        self.convolution7 = torch.nn.Conv2d(512, 512, 2)
+        self.pooling4 = torch.nn.MaxPool2d((2, 1), stride=(2, 1))
+        self.convolution7 = torch.nn.Conv2d(512, 512, 3, padding=1)
 
     def forward(self, x):
         x = F.relu(self.convolution1(x), inplace=True)
@@ -41,7 +41,8 @@ class Vgg_16(torch.nn.Module):
 class RNN(torch.nn.Module):
     def __init__(self, class_num, hidden_unit):
         super(RNN, self).__init__()
-        self.Bidirectional_LSTM1 = torch.nn.LSTM(512, hidden_unit, bidirectional=True)
+        #TODO CHANGE THE INPUT CHANNEL HERE
+        self.Bidirectional_LSTM1 = torch.nn.LSTM(1536, hidden_unit, bidirectional=True)
         self.embedding1 = torch.nn.Linear(hidden_unit * 2, 512)
         self.Bidirectional_LSTM2 = torch.nn.LSTM(512, hidden_unit, bidirectional=True)
         self.embedding2 = torch.nn.Linear(hidden_unit * 2, class_num)
@@ -70,7 +71,8 @@ class CRNN(torch.nn.Module):
     def forward(self, x):
         x = self.cnn(x)
         b, c, h, w = x.size()
-        assert h == 1   # "the height of conv must be 1"
+        x = x.view(b, -1, w)
+        # assert h == 1   # "the height of conv must be 1"
         x = x.squeeze(2)  # remove h dimension, b *512 * width
         x = x.permute(2, 0, 1)  # [w, b, c] = [seq_len, batch, input_size]
         x = self.rnn(x)

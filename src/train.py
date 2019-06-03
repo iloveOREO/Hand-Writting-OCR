@@ -17,11 +17,11 @@ if __name__ == '__main__':
     criterion = CTCLoss()
     solver = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
 
-    ocr_dataset = TextDataset("./data", None)
+    ocr_dataset = TextDataset("./data", transform)
     ocr_dataset_loader = torch.utils.data.DataLoader(dataset=ocr_dataset,
                                                      batch_size=5,
                                                      shuffle=False,
-                                                     collate_fn=alignCollate(imgH=32, imgW=1600, keep_ratio=False))
+                                                     collate_fn=Collate())
 
     use_cuda = torch.cuda.is_available()
     # loss_meter = AverageMeter()
@@ -32,13 +32,15 @@ if __name__ == '__main__':
         device = torch.device('cuda:0')
         model.cuda()
         criterion = criterion.cuda()
-    for ind, (x, target) in enumerate(ocr_dataset_loader):
+    for ind, (x, target, target_lengths) in enumerate(ocr_dataset_loader):
         # x = [batch_size, channels, height, weight]
         # act_lengths = get_seq_length(x)
         # target is a list of `torch.InTensor` with `bsz` size.
+        '''
         flatten_target, target_lengths = preprocess_target(target)
         x, flatten_target, target_lengths = tensor_to_variable(
             (x, flatten_target, target_lengths), volatile=False)
+        '''
         if use_cuda:
             x = x.cuda()
             # act_lengths = act_lengths.to(device)
@@ -48,9 +50,9 @@ if __name__ == '__main__':
         bsz = x.size(0)
 
         output = model(x)
-        act_lengths = Variable(torch.IntTensor([output.size(0)] * 5))
+        act_lengths = torch.IntTensor([output.size(0)] * 5)
         #  print(output.shape)
-        loss = criterion(output, flatten_target, act_lengths, target_lengths)
+        loss = criterion(output, target, act_lengths, target_lengths)
         print(loss)
         solver.zero_grad()
         loss.backward()
