@@ -49,25 +49,29 @@ def get_accuracy(output, targets, prob=True):
     return float(cnt) / len(targets)
 
 
-class AverageMeter(object):
-    """ Average meter.
-    """
+class averager(object):
+    """Compute average for `torch.Variable` and `torch.Tensor`. """
 
     def __init__(self):
         self.reset()
 
-    def reset(self):
-        """ Reset items.
-        """
-        self.n = 0
-        self.val = 0.
-        self.sum = 0.
-        self.avg = 0.
+    def add(self, v):
+        if isinstance(v, Variable):
+            count = v.data.numel()
+            v = v.data.sum()
+        elif isinstance(v, torch.Tensor):
+            count = v.numel()
+            v = v.sum()
 
-    def update(self, val, n=1):
-        """ Update
-        """
-        self.n += n
-        self.val = val
-        self.sum += val * n
-        self.avg = self.sum / self.n
+        self.n_count += count
+        self.sum += v
+
+    def reset(self):
+        self.n_count = 0
+        self.sum = 0
+
+    def val(self):
+        res = 0
+        if self.n_count != 0:
+            res = self.sum / float(self.n_count)
+        return res

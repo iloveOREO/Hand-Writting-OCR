@@ -7,18 +7,28 @@ import os
 import numpy as np
 import cv2
 from PIL import Image
-
+import pandas as pd
 
 class TextDataset(Dataset):
 
     def __init__(self, data_path, transform=transforms.ToTensor()):
+        base_dir = "~/Document/pickle_data"
+        files = os.listdir('./dataset/iamdataset')
+        plk_file = [file for file in files if file.endswith('plk')]
+        image_data_chunks = []
+        for fn in sorted(plk_file):
+            fn = base_dir + fn
+            df = pickle.load(open(fn, 'rb'))
+            image_data_chunks.append(df)
+            self.image_data = pd.concat(image_data_chunks)
         super().__init__()
         self.data_path = data_path
         self.transform = transform
+        # TODO GET RIDE OF THIS IN THE FUTURE
         with open("./data/processed_sentence", "rb") as f:
             self.text = pickle.load(f)
         self.images_names = list(self.text.keys())
-        self.charset = """ !"#&'()*+,-./0123456789:;?abcdefghijklmnopqrstuvwxyz\\"""
+        self.charset = """ !"#&'()*+,-./0123456789:;?abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\\"""
 
     def __len__(self):
         return len(self.images_names)

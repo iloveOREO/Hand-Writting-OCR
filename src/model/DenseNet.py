@@ -120,7 +120,7 @@ class DenseNet(nn.Module):
 
         # Linear layer
         # self.classifier = nn.Linear(num_features, num_classes)
-        self.classifer = nn.Linear(1, 54)
+        self.classifer = nn.Linear(1024, 55)
 
         # Official init from torch repo.
         for m in self.modules():
@@ -142,7 +142,9 @@ class DenseNet(nn.Module):
         # out = [weight, batch_size, height]
         out = out.permute(3, 0, 1, 2).mean(-1)
         # out = F.adaptive_avg_pool2d(out.permute(3, 0, 2, 1), (1, 1)).view(out.size(3), out.size(0), -1)
-        out = self.classifer(out)
+        out = self.classifer(out).log_softmax(2)
+        # .detach().requires_grad_()
+        # out = F.softmax(out, dim=-1)
         # 全连接层
         #         out = self.classifier(out)
         return out
